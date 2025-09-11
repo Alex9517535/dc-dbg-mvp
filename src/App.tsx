@@ -1,8 +1,53 @@
+import './styles.css';
+import { useState } from 'react';
+import { useGame } from './state/store';
+import Pile from './ui/Pile';
+import Controls from './ui/Controls';
+import { isGameOver } from './core/engine';
+import MenuScreen from './ui/MenuScreen';
+
 export default function App() {
+  // show menu first
+  const [showMenu, setShowMenu] = useState(true);
+  const g = useGame();
+
+  if (showMenu) {
+    return <MenuScreen onStart={() => setShowMenu(false)} />;
+  }
+
+  const gameOver = isGameOver(g);
+
   return (
-    <div style={{ padding: 24, fontFamily: 'system-ui' }}>
-      <h1>Hello, world 👋</h1>
-      <p>If you can see this, React is mounting correctly.</p>
-    </div>
+    <main className="container">
+      <h1>DC Deck-Building MVP (Placeholder Assets)</h1>
+
+      {gameOver && <div className="banner">Game Over • Final Score: {g.score}</div>}
+
+      <Controls
+        turn={g.turn}
+        phase={g.phase}
+        power={g.power}
+        score={g.score}
+        onEndTurn={() => useGame.getState().endTurn()}
+        onNextTurn={() => useGame.getState().nextTurn()}
+        onReset={() => useGame.getState().reset()}
+        onSave={() => useGame.getState().save()}
+        onLoad={() => useGame.getState().load()}
+      />
+
+      <Pile
+        title="Line-Up"
+        cards={g.piles.lineup}
+        onCardClick={(id) => useGame.getState().buy(id)}
+        disableAll={g.phase !== 'buy'}
+      />
+
+      <section className="row-summaries">
+        <div className="summary">Deck: {g.piles.deck.length}</div>
+        <div className="summary">Discard: {g.piles.discard.length}</div>
+      </section>
+
+      <Pile title="Hand" cards={g.piles.hand} disableAll />
+    </main>
   );
 }

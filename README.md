@@ -1,76 +1,76 @@
-Hello Ryan & Arunbir!
-Welcome to Github, and to the Repository for our DC Deck Building Game!
+**Team Alpha**  
+- Ryan Arce  
+- Nathan Brown  
+- Arunbir Singh  
 
+CSC480A: Computer Science Capstone Project I  
+National University — San Diego, CA  
+Instructor: Dr. Jeffery S. Appel  
+September 2025 Term  
 
+---
 
-___________________________________________________________________________________________________
-# React + TypeScript + Vite
+## 🎮 Project Overview
+This project is a **browser-based minimum viable product (MVP)** of the DC Deck-Building Game using the **Cerberus Engine** (implemented with **placeholder assets only** — no licensed art or text).  
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The purpose is to demonstrate:
+- A **rules-accurate one-player demo** of the core gameplay loop:  
+  *setup → turns → buying → line-up refill → scoring*  
+- Early validation of **digital feasibility** and **user experience (UX)**.  
+- An Agile development approach managed using **Scrum**.  
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
+- **Opening Menu Screen** (video-game style start menu with start button, info, credits).  
+- **Core Gameplay Loop**:  
+  - Draw cards  
+  - Generate power  
+  - Buy cards from the line-up  
+  - Refill the line-up  
+  - Score victory points  
+- **Basic State Management** with [Zustand](https://github.com/pmndrs/zustand).  
+- **Save/Load** game state using browser `localStorage`.  
+- **Responsive UI** built with React + TypeScript.  
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Tech Stack
+- **Language:** TypeScript  
+- **UI Framework:** React  
+- **Rendering:** DOM/SVG (expandable to PixiJS/Phaser for animations)  
+- **State Management:** Zustand  
+- **Game Logic:** Pure TypeScript modules + state machine pattern  
+- **Persistence:** localStorage  
+- **Build Tool:** Vite  
+- **Version Control:** Git + GitHub  
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## 📂 Project Structure
+src/
+assets/react.svg
+core/cards.ts-engine.ts-types.ts
+state/store.ts
+ui/CardView.tsx-Controls.tsx-MenuScreen.tsx-Pile.tsx
+App.tsx
+index.css
+main.tsx
+styles.css
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## ▶️ Getting Started
 
-___________________________________________________________________________________________________
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 1. Clone the repository
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Terminal:
+git clone https://github.com/Alex9517535/dc-dbg-mvp.git
+cd dc-dbg-mvp
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Terminal: 
+npm install
+
+Terminal: 
+npm run dev
+
+Open http;//localhost:5173 in your browser.
+
