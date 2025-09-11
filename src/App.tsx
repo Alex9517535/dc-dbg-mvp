@@ -13,13 +13,14 @@ if (showMenu) {
   return (
     <MenuScreen
       onStart={() => {
-        // start a fresh game each time Start is pressed
-        useGame.getState().reset();
-        setShowMenu(false); // or setUiShowMenu(false) if you moved this into the store
+        // start a fresh game each time "Start Game" is pressed
+        useGame.getState().reset();          // makes a new shuffled deck
+        useGame.getState().setUiShowMenu(false); // hides the menu
       }}
     />
   );
 }
+
 
   const gameOver = isGameOver(g);
 
