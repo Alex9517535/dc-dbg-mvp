@@ -1,5 +1,4 @@
 import './styles.css';
-import { useState } from 'react';
 import { useGame } from './state/store';
 import Pile from './ui/Pile';
 import Controls from './ui/Controls';
@@ -7,12 +6,11 @@ import { isGameOver } from './core/engine';
 import MenuScreen from './ui/MenuScreen';
 
 export default function App() {
-  // show menu first
-  const [showMenu, setShowMenu] = useState(true);
   const g = useGame();
+  const showMenu = g.uiShowMenu;
 
   if (showMenu) {
-    return <MenuScreen onStart={() => setShowMenu(false)} />;
+    return <MenuScreen onStart={() => useGame.getState().setUiShowMenu(false)} />;
   }
 
   const gameOver = isGameOver(g);
@@ -33,6 +31,7 @@ export default function App() {
         onReset={() => useGame.getState().reset()}
         onSave={() => useGame.getState().save()}
         onLoad={() => useGame.getState().load()}
+        onReturnToMenu={() => useGame.getState().setUiShowMenu(true)}
       />
 
       <Pile

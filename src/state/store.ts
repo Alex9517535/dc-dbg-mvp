@@ -11,7 +11,14 @@ type Actions = {
   nextTurn: () => void;
   save: () => void;
   load: () => void;
+
+  // UI slice
+  setUiShowMenu: (show: boolean) => void;
 };
+
+type Store = GameState & {
+  uiShowMenu: boolean;
+} & Actions;
 
 const loadState = (): GameState | null => {
   try {
@@ -22,24 +29,28 @@ const loadState = (): GameState | null => {
   }
 };
 
-export const useGame = create<GameState & Actions>((set, get) => ({
+export const useGame = create<Store>((set, get) => ({
   ...(loadState() ?? newGame()),
-  reset: () => set(() => newGame()),
+  uiShowMenu: true,
+
+  reset: () => set(() => ({ ...newGame() })),
   endTurn: () => set(s => (endTurn(s), s)),
   buy: (cardId: string) => set(s => (buyFromLineup(s, cardId), s)),
   nextTurn: () => set(s => (nextTurn(s), s)),
   save: () => {
-    const s = get();
-    localStorage.setItem(KEY, JSON.stringify(s));
+    const { uiShowMenu, setUiShowMenu, ...gameOnly } = get();
+    localStorage.setItem(KEY, JSON.stringify(gameOnly));
   },
   load: () => {
     const loaded = loadState();
-    if (loaded) set(loaded);
+    if (loaded) set({ ...loaded });
   },
+
+  setUiShowMenu: (show: boolean) => set({ uiShowMenu: show }),
 }));
 
-// autosave on unload (optional)
+// (optional) autosave on unload
 window.addEventListener('beforeunload', () => {
-  const s = useGame.getState();
-  localStorage.setItem(KEY, JSON.stringify(s));
+  const { uiShowMenu, setUiShowMenu, ...gameOnly } = useGame.getState();
+  localStorage.setItem(KEY, JSON.stringify(gameOnly));
 });
