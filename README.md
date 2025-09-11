@@ -56,7 +56,7 @@ ui/CardView.tsx-Controls.tsx-MenuScreen.tsx-Pile.tsx \
 App.tsx \
 index.css \
 main.tsx \
-styles.css \
+styles.css
 
 ## ▶️ Getting Started
 
