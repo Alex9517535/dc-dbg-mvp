@@ -1,24 +1,23 @@
-import type { Card, GameState } from './types';
-import { makeBaseSet, shuffle } from './cards';
+import type { Card, GameState } from "./types";
+import { getBaseDeck } from "../data/cards";
+import { shuffle } from "./cards";
 
 const HAND_SIZE = 5;
 const LINEUP_SIZE = 5;
 
 export function newGame(): GameState {
-  const deck = makeBaseSet();
+  const deck = shuffle(getBaseDeck());
   const state: GameState = {
     turn: 1,
-    phase: 'setup',
+    phase: "setup",
     piles: { deck, hand: [], discard: [], lineup: [], destroyed: [] },
     power: 0,
     score: 0,
   };
-  // initial lineup + starting hand
-  refillLineup(state);
-  draw(state, HAND_SIZE);
-  state.phase = 'turn';
+  // initial setup (draw/refill) ...
   return state;
 }
+
 
 export function draw(state: GameState, n: number) {
   while (n-- > 0) {

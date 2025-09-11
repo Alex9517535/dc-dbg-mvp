@@ -1,17 +1,23 @@
-export type CardId = string;
-
-export type Card = {
-  id: CardId;
-  name: string;        // placeholder-only
-  cost: number;        // simple buy cost
-  vp: number;          // victory points for end scoring
+// A card definition ("recipe" for cards in the supply)
+export type CardDef = {
+  name: string;
+  cost: number;
+  vp: number;
+  count?: number;     // how many copies in the supply (default 1)
+  set?: string;       // optional: "base", etc.
+  type?: string;      // optional: "basic" | "ally" | "equip" | ...
+  text?: string;      // optional: rules text (placeholder only)
 };
+
+// A concrete card instance with a unique id (what goes into piles)
+export type CardId = string;
+export type Card = CardDef & { id: CardId };
 
 export type Piles = {
   deck: Card[];
   hand: Card[];
   discard: Card[];
-  lineup: Card[];      // market / line-up
+  lineup: Card[];
   destroyed: Card[];
 };
 
@@ -21,6 +27,6 @@ export type GameState = {
   turn: number;
   phase: Phase;
   piles: Piles;
-  power: number;       // simple currency earned/available this turn
-  score: number;       // running score for demo; final tally on end
+  power: number;
+  score: number;
 };
