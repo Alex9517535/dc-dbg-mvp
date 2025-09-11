@@ -48,15 +48,15 @@ The purpose is to demonstrate:
 ---
 
 ## 📂 Project Structure
-src/
-assets/react.svg
-core/cards.ts-engine.ts-types.ts
-state/store.ts
-ui/CardView.tsx-Controls.tsx-MenuScreen.tsx-Pile.tsx
-App.tsx
-index.css
-main.tsx
-styles.css
+src/ \
+assets/react.svg \
+core/cards.ts-engine.ts-types.ts \
+state/store.ts \
+ui/CardView.tsx-Controls.tsx-MenuScreen.tsx-Pile.tsx \
+App.tsx \
+index.css \
+main.tsx \
+styles.css DELETE ME LATER\
 
 ## ▶️ Getting Started
 
