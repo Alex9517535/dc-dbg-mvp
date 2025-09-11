@@ -9,9 +9,17 @@ export default function App() {
   const g = useGame();
   const showMenu = g.uiShowMenu;
 
-  if (showMenu) {
-    return <MenuScreen onStart={() => useGame.getState().setUiShowMenu(false)} />;
-  }
+if (showMenu) {
+  return (
+    <MenuScreen
+      onStart={() => {
+        // start a fresh game each time Start is pressed
+        useGame.getState().reset();
+        setShowMenu(false); // or setUiShowMenu(false) if you moved this into the store
+      }}
+    />
+  );
+}
 
   const gameOver = isGameOver(g);
 
