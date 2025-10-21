@@ -143,3 +143,73 @@ kbd {
 }
 
 /* Keep your existing app styles below/above as needed */
+
+/* ===== Card Modal ===== */
+.card-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.65);
+  display: grid;
+  place-items: center;
+  z-index: 60;
+}
+
+.card-modal {
+  background: #0b1220;
+  border: 1px solid #1f2937;
+  border-radius: 14px;
+  padding: 16px;
+  width: min(92vw, 520px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.45);
+}
+
+.card-large {
+  height: 280px;
+  border-radius: 16px;
+  border: 1px solid #475569;
+  background: linear-gradient(180deg,#0b1220,#0d1b2a);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #334155;
+  color: #e2e8f0;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.close-btn:hover { filter: brightness(1.05); }
+
+/* ===== Phase / Rules / Log extras ===== */
+.rules-panel { 
+  margin: 12px 0; 
+  background: #0b1220; 
+  border: 1px solid #1f2937; 
+  border-radius: 12px; 
+  padding: 10px 14px; 
+}
+
+.log-panel {
+  background: #0b1220;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.log-buttons button { margin-left: 8px; }
+.log-body { max-height: 240px; overflow: auto; border-top: 1px solid #1f2937; padding-top: 8px; }
+.log-row { display: grid; grid-template-columns: 80px 1fr; gap: 8px; padding: 4px 0; border-bottom: 1px dashed rgba(148,163,184,.15); }
+.log-time { color: #94a3b8; font-size: 12px; }
+.log-empty { color: #94a3b8; font-size: 14px; }
+
+/* Tooltip stacking */
+.card-tooltip { z-index: 50; }

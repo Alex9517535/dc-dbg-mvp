@@ -30,3 +30,30 @@ export type GameState = {
   power: number;
   score: number;
 };
+
+// --- Action / Turn History Log ---
+
+export type LogKind =
+  | 'game/start'
+  | 'turn/end'
+  | 'turn/next'
+  | 'buy/attempt'
+  | 'buy/success'
+  | 'shuffle'
+  | 'refill'
+  | 'save'
+  | 'load'
+  | 'menu/show'
+  | 'menu/hide'
+  | 'card/view';
+
+export type LogEntry = {
+  id: string;
+  ts: number;      // Date.now()
+  turn: number;
+  phase: Phase;
+  kind: LogKind;
+  msg: string;     // human-readable
+  data?: Record<string, unknown>;
+};
+

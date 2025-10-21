@@ -5,28 +5,34 @@ import Controls from './ui/Controls';
 import { isGameOver } from './core/engine';
 import MenuScreen from './ui/MenuScreen';
 
+import PhaseIndicator from './ui/PhaseIndicator';            // ⬅ NEW
+import RulesReferencePanel from './ui/RulesReferencePanel';  // ⬅ NEW
+import ActionLogPanel from './ui/ActionLogPanel';            // ⬅ NEW
+import CardTooltip from './ui/CardTooltip';                  // ⬅ NEW
+
 export default function App() {
   const g = useGame();
   const showMenu = g.uiShowMenu;
 
-if (showMenu) {
-  return (
-    <MenuScreen
-      onStart={() => {
-        // start a fresh game each time "Start Game" is pressed
-        useGame.getState().reset();          // makes a new shuffled deck
-        useGame.getState().setUiShowMenu(false); // hides the menu
-      }}
-    />
-  );
-}
-
+  if (showMenu) {
+    return (
+      <MenuScreen
+        onStart={() => {
+          useGame.getState().reset();
+          useGame.getState().setUiShowMenu(false);
+        }}
+      />
+    );
+  }
 
   const gameOver = isGameOver(g);
 
   return (
     <main className="container">
-      <h1>DC Deck-Building MVP (Placeholder Assets)</h1>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <h1>DC Deck-Building MVP (Placeholder Assets)</h1>
+        <PhaseIndicator phase={g.phase} />
+      </header>
 
       {gameOver && <div className="banner">Game Over • Final Score: {g.score}</div>}
 
@@ -43,6 +49,8 @@ if (showMenu) {
         onReturnToMenu={() => useGame.getState().setUiShowMenu(true)}
       />
 
+      <RulesReferencePanel />
+
       <Pile
         title="Line-Up"
         cards={g.piles.lineup}
@@ -56,6 +64,17 @@ if (showMenu) {
       </section>
 
       <Pile title="Hand" cards={g.piles.hand} disableAll />
+
+      {/* Collapsible Action Log */}
+      <details className="menu-details" style={{ marginTop: 12 }}>
+        <summary>Show Action Log</summary>
+        <div className="menu-panel">
+          <ActionLogPanel />
+        </div>
+      </details>
+
+      {/* Hover Tooltip */}
+      <CardTooltip card={g.hoveredCard} />
     </main>
   );
 }
