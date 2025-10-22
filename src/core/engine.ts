@@ -1,94 +1,147 @@
 // src/core/engine.ts
-import type { GameState, Card } from "./types";
-import { getBaseDeck } from "../data/cards";
-import { shuffle } from "./cards";
+import type { GameState, Card } from './types';
+import { getBaseDeck } from '../data/cards';
+import { shuffle } from './cards';
 
 const HAND_SIZE = 5;
 const LINEUP_SIZE = 5;
 
-export function newGame(): GameState {
-  // 1) Build & shuffle deck from your data/cards.ts “database”
-  const deck = shuffle(getBaseDeck());
+/* ------------------------- helpers (pure) ------------------------- */
 
-  const state: GameState = {
+function drawPure(state: GameState, n: number): GameState {
+  let deck = [...state.piles.deck];
+  let discard = [...state.piles.discard];
+  const hand = [...state.piles.hand];
+  let power = state.power;
+
+  let count = n;
+  while (count-- > 0) {
+    if (deck.length === 0) {
+      if (discard.length === 0) break;
+      deck = shuffle(discard);
+      discard = [];
+    }
+    const c = deck.pop()!;
+    hand.push(c);
+    // placeholder power rule
+    power += Math.floor(c.cost / 2);
+  }
+
+  return {
+    ...state,
+    piles: { ...state.piles, deck, discard, hand },
+    power,
+  };
+}
+
+function refillLineupPure(state: GameState): GameState {
+  let deck = [...state.piles.deck];
+  let discard = [...state.piles.discard];
+  const lineup = [...state.piles.lineup];
+
+  while (lineup.length < LINEUP_SIZE) {
+    if (deck.length === 0) {
+      if (discard.length === 0) break;
+      deck = shuffle(discard);
+      discard = [];
+    }
+    lineup.push(deck.pop()!);
+  }
+
+  return {
+    ...state,
+    piles: { ...state.piles, deck, discard, lineup },
+  };
+}
+
+/* --------------------------- API (pure) --------------------------- */
+
+export function newGame(): GameState {
+  const deck = shuffle(getBaseDeck());
+  const base: GameState = {
     turn: 1,
-    phase: "setup",
+    phase: 'setup',
     piles: { deck, hand: [], discard: [], lineup: [], destroyed: [] },
     power: 0,
     score: 0,
   };
 
-  // 2) Initial lineup + starting hand
-  refillLineup(state);
-  draw(state, HAND_SIZE);
-
-  // 3) Move to the first playable phase
-  state.phase = "turn";
-  return state;
+  // initial lineup + starting hand, then move to turn phase
+  const withLineup = refillLineupPure(base);
+  const withHand = drawPure(withLineup, HAND_SIZE);
+  return { ...withHand, phase: 'turn' as const };
 }
 
-export function draw(state: GameState, n: number) {
-  while (n-- > 0) {
-    if (state.piles.deck.length === 0) {
-      // reshuffle discard into deck
-      if (state.piles.discard.length === 0) break;
-      state.piles.deck = shuffle(state.piles.discard);
-      state.piles.discard = [];
-    }
-    const c = state.piles.deck.pop()!;
-    state.piles.hand.push(c);
-    // placeholder: gain some power based on cost
-    state.power += Math.floor(c.cost / 2);
-  }
+export function draw(state: GameState, n: number): GameState {
+  return drawPure(state, n);
 }
 
-export function endTurn(state: GameState) {
-  if (state.phase !== "turn") return;
-  state.piles.discard.push(...state.piles.hand);
-  state.piles.hand = [];
-  state.phase = "buy";
+export function endTurn(state: GameState): GameState {
+  if (state.phase !== 'turn') return state;
+  const hand = state.piles.hand;
+  return {
+    ...state,
+    phase: 'buy' as const,
+    piles: {
+      ...state.piles,
+      hand: [],
+      discard: [...state.piles.discard, ...hand],
+    },
+  };
 }
 
 export function canBuy(state: GameState, card: Card) {
-  return state.phase === "buy" && state.power >= card.cost;
+  return state.phase === 'buy' && state.power >= card.cost;
 }
 
-export function buyFromLineup(state: GameState, cardId: string) {
-  if (state.phase !== "buy") return false;
-  const idx = state.piles.lineup.findIndex(c => c.id === cardId);
-  if (idx === -1) return false;
+export function buyFromLineup(state: GameState, cardId: string): GameState {
+  if (state.phase !== 'buy') return state;
+
+  const idx = state.piles.lineup.findIndex((c) => c.id === cardId);
+  if (idx === -1) return state;
+
   const card = state.piles.lineup[idx];
-  if (!canBuy(state, card)) return false;
+  if (!canBuy(state, card)) return state;
 
-  state.power -= card.cost;
-  state.piles.discard.push(card);
-  state.piles.lineup.splice(idx, 1);
-  state.score += card.vp;
-  state.phase = "refill";
-  return true;
+  const lineup = [...state.piles.lineup];
+  lineup.splice(idx, 1);
+
+  return {
+    ...state,
+    phase: 'refill' as const,
+    power: state.power - card.cost,
+    score: state.score + card.vp,
+    piles: {
+      ...state.piles,
+      lineup,
+      discard: [...state.piles.discard, card],
+    },
+  };
 }
 
-export function refillLineup(state: GameState) {
-  while (state.piles.lineup.length < LINEUP_SIZE) {
-    if (state.piles.deck.length === 0) {
-      if (state.piles.discard.length === 0) break;
-      state.piles.deck = shuffle(state.piles.discard);
-      state.piles.discard = [];
-    }
-    state.piles.lineup.push(state.piles.deck.pop()!);
-  }
+export function refillLineup(state: GameState): GameState {
+  return refillLineupPure(state);
 }
 
-export function nextTurn(state: GameState) {
-  if (state.phase !== "refill") return;
-  refillLineup(state);
-  state.turn += 1;
-  state.power = 0;
-  draw(state, HAND_SIZE);
-  state.phase = "turn";
+export function nextTurn(state: GameState): GameState {
+  if (state.phase !== 'refill') return state;
+
+  // 1) Refill lineup (in case something removed it)
+  const afterRefill = refillLineupPure(state);
+
+  // 2) Advance turn, reset power, draw a hand, enter 'turn'
+  const advanced: GameState = {
+    ...afterRefill,
+    turn: afterRefill.turn + 1,
+    power: 0,
+    phase: 'turn',
+  };
+
+  return drawPure(advanced, HAND_SIZE);
 }
 
 export function isGameOver(state: GameState) {
-  const noCards = state.piles.deck.length === 0 && state.piles.discard.length === 0;
+  const noCards =
+    state.piles.deck.length === 0 && state.piles.discard.length === 0;
   return noCards || state.turn > 10;
 }
