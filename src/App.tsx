@@ -5,10 +5,10 @@ import Controls from './ui/Controls';
 import { isGameOver } from './core/engine';
 import MenuScreen from './ui/MenuScreen';
 
-import PhaseIndicator from './ui/PhaseIndicator';            // ⬅ NEW
-import RulesReferencePanel from './ui/RulesReferencePanel';  // ⬅ NEW
-import ActionLogPanel from './ui/ActionLogPanel';            // ⬅ NEW
-import CardTooltip from './ui/CardTooltip';                  // ⬅ NEW
+import PhaseIndicator from './ui/PhaseIndicator';            
+import RulesReferencePanel from './ui/RulesReferencePanel';  
+import ActionLogPanel from './ui/ActionLogPanel';            
+import CardTooltip from './ui/CardTooltip';              
 
 export default function App() {
   const g = useGame();
@@ -28,53 +28,62 @@ export default function App() {
   const gameOver = isGameOver(g);
 
   return (
-    <main className="container">
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-        <h1>DC Deck-Building MVP (Placeholder Assets)</h1>
-        <PhaseIndicator phase={g.phase} />
-      </header>
+    <div className="game-board">
+      <main className="container">
+        <header
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <h1>DC Deck-Building MVP (Placeholder Assets)</h1>
+          <PhaseIndicator phase={g.phase} />
+        </header>
 
-      {gameOver && <div className="banner">Game Over • Final Score: {g.score}</div>}
+        {gameOver && (
+          <div className="banner">Game Over • Final Score: {g.score}</div>
+        )}
 
-      <Controls
-        turn={g.turn}
-        phase={g.phase}
-        power={g.power}
-        score={g.score}
-        onEndTurn={() => useGame.getState().endTurn()}
-        onNextTurn={() => useGame.getState().nextTurn()}
-        onReset={() => useGame.getState().reset()}
-        onSave={() => useGame.getState().save()}
-        onLoad={() => useGame.getState().load()}
-        onReturnToMenu={() => useGame.getState().setUiShowMenu(true)}
-      />
+        <Controls
+          turn={g.turn}
+          phase={g.phase}
+          power={g.power}
+          score={g.score}
+          onEndTurn={() => useGame.getState().endTurn()}
+          onNextTurn={() => useGame.getState().nextTurn()}
+          onReset={() => useGame.getState().reset()}
+          onSave={() => useGame.getState().save()}
+          onLoad={() => useGame.getState().load()}
+          onReturnToMenu={() => useGame.getState().setUiShowMenu(true)}
+        />
 
-      <RulesReferencePanel />
+        <RulesReferencePanel />
 
-      <Pile
-        title="Line-Up"
-        cards={g.piles.lineup}
-        onCardClick={(id) => useGame.getState().buy(id)}
-        disableAll={g.phase !== 'buy'}
-      />
+        <Pile
+          title="Line-Up"
+          cards={g.piles.lineup}
+          onCardClick={(id) => useGame.getState().buy(id)}
+          disableAll={g.phase !== "buy"}
+        />
 
-      <section className="row-summaries">
-        <div className="summary">Deck: {g.piles.deck.length}</div>
-        <div className="summary">Discard: {g.piles.discard.length}</div>
-      </section>
+        <section className="row-summaries">
+          <div className="summary">Deck: {g.piles.deck.length}</div>
+          <div className="summary">Discard: {g.piles.discard.length}</div>
+        </section>
 
-      <Pile title="Hand" cards={g.piles.hand} disableAll />
+        <Pile title="Hand" cards={g.piles.hand} disableAll />
 
-      {/* Collapsible Action Log */}
-      <details className="menu-details" style={{ marginTop: 12 }}>
-        <summary>Show Action Log</summary>
-        <div className="menu-panel">
-          <ActionLogPanel />
-        </div>
-      </details>
+        <details className="menu-details" style={{ marginTop: 12 }}>
+          <summary>Show Action Log</summary>
+          <div className="menu-panel">
+            <ActionLogPanel />
+          </div>
+        </details>
 
-      {/* Hover Tooltip */}
-      <CardTooltip card={g.hoveredCard} />
-    </main>
+        <CardTooltip card={g.hoveredCard} />
+      </main>
+    </div>
   );
 }

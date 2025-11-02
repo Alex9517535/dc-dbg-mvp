@@ -1,3 +1,4 @@
+// src/ui/Pile.tsx
 import type { Card } from '../core/types';
 import CardView from './CardView';
 
@@ -11,9 +12,13 @@ type Props = {
 export default function Pile({ title, cards, onCardClick, disableAll }: Props) {
   return (
     <section className="pile">
-      <h3>{title} ({cards.length})</h3>
+      {/* Turn the heading into a tile */}
+      <h3 className="pile-title slot-tile small">
+        {title} ({cards.length})
+      </h3>
+
       <div className="row">
-        {cards.map(c => (
+        {cards.map((c) => (
           <CardView
             key={c.id}
             card={c}
