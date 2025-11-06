@@ -1,26 +1,28 @@
 // src/data/cards.ts
-import type { Card, CardDef } from "../core/types";
+import type { Card } from '../core/types';
 
-const BASE_CARDS: CardDef[] = [
-  { name: "Punch",   cost: 1, vp: 1, count: 10, set: "base", type: "basic" },
-  { name: "Kick",    cost: 2, vp: 1, count: 8,  set: "base", type: "basic" },
-  { name: "Gadget",  cost: 3, vp: 2, count: 6,  set: "base", type: "equip" },
-  { name: "Ally",    cost: 4, vp: 3, count: 5,  set: "base", type: "ally" },
-  { name: "Big Move",cost: 5, vp: 4, count: 5,  set: "base", type: "action" },
+const BASE: Omit<Card, 'id'>[] = [
+  { name: "Punch",        cost: 0, vp: 0 },
+  { name: "Kick",         cost: 2, vp: 1 },
+  { name: "Weakness",     cost: 0, vp: -1 },
+
+  { name: "Aquaman's Trident", cost: 3, vp: 1 },
+  { name: "Green Arrow's Bow", cost: 3, vp: 1 },
+  { name: "Lasso of Truth",    cost: 3, vp: 1 },
+  { name: "Nth Metal",         cost: 4, vp: 2 },
+  { name: "Power Ring",        cost: 3, vp: 1 },
+  { name: "The Bat-Signal",    cost: 3, vp: 1 },
+  { name: "The Batmobile",     cost: 3, vp: 1 },
+  { name: "The Cape and Cowl", cost: 3, vp: 1 },
+  { name: "Utility Belt",      cost: 3, vp: 2 },
 ];
 
-export function generateDeckFrom(defs: CardDef[], prefix = "B"): Card[] {
-  const deck: Card[] = [];
-  let seq = 1;
-  for (const d of defs) {
-    const copies = d.count ?? 1;
-    for (let i = 0; i < copies; i++) {
-      deck.push({ ...d, id: `${prefix}${seq++}` });
-    }
-  }
-  return deck;
-}
-
 export function getBaseDeck(): Card[] {
-  return generateDeckFrom(BASE_CARDS, "B");
+  // give every card a unique id so duplicates can exist
+  return BASE.map((c, i) => ({ ...c, id: `base-${i}` }))
+    // add typical starters (7 Punch, 3 Weakness)
+    .concat(
+      ...Array.from({ length: 7 }, (_, i) => ({ id: `starter-punch-${i}`, name: "Punch", cost: 0, vp: 0 })),
+      ...Array.from({ length: 3 }, (_, i) => ({ id: `starter-weak-${i}`, name: "Weakness", cost: 0, vp: -1 })),
+    );
 }

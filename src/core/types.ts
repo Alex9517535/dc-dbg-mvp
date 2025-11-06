@@ -2,11 +2,12 @@
 export type CardDef = {
   name: string;
   cost: number;
-  vp: number;
-  count?: number;     // how many copies in the supply (default 1)
-  set?: string;       // optional: "base", etc.
-  type?: string;      // optional: "basic" | "ally" | "equip" | ...
-  text?: string;      // optional: rules text (placeholder only)
+  vp?: number;        // optional so engine can do (card.vp ?? 0)
+  power?: number;     // optional if you want explicit power on cards
+  count?: number;
+  set?: string;
+  type?: string;
+  text?: string;
 };
 
 // A concrete card instance with a unique id (what goes into piles)
