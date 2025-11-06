@@ -1,65 +1,76 @@
-import { useState } from "react";
-import type { Card } from "../core/types";
-import { useGame } from "../state/store";
+// src/ui/CardView.tsx
+import { useState } from 'react';
+import type { Card } from '../core/types';
+import { getCardImagePath } from '../core/cards';
+import './CardView.css';
 
-type Props = {
+interface CardViewProps {
   card: Card;
-  onClick?: () => void;     // buy action
-  disabled?: boolean;       // disable buying, but not viewing
-};
+  onClick?: () => void;
+  isPlayed?: boolean;
+}
 
-export default function CardView({ card, onClick, disabled }: Props) {
-  const [showModal, setShowModal] = useState(false);
-  const setHoveredCard = useGame(s => s.setHoveredCard);
-  const addLog = useGame(s => s.addLog);
-
-  // Handle clicks: always open modal, but only call onClick if allowed
-  const handleClick = () => {
-    setShowModal(true);
-    addLog?.({ kind: 'card/view', msg: `Viewed ${card.name}`, data: { id: card.id } });
-    if (!disabled && onClick) {
-      onClick();
-    }
-  };
+export default function CardView({ card, onClick, isPlayed }: CardViewProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const imagePath = getCardImagePath(card.name);
 
   return (
     <>
       <div
-        className="card"
-        onClick={handleClick}
-        role="button"
-        tabIndex={0}
-        title={`Cost: ${card.cost} | VP: ${card.vp}`}
-        onKeyDown={(e) => e.key === "Enter" && handleClick()}
-        onMouseEnter={() => setHoveredCard(card)}
-        onMouseLeave={() => setHoveredCard(null)}
+        className={`card ${isPlayed ? 'card-played' : ''} ${onClick ? 'card-clickable' : ''}`}
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="card-name">{card.name}</div>
-        <div className="card-meta">
-          Cost {card.cost} • VP {card.vp}
+        <div className="card-image-container">
+          <img 
+            src={imagePath} 
+            alt={card.name}
+            className="card-image"
+            onError={(e) => {
+              // Fallback if image doesn't load
+              e.currentTarget.src = '/cards/card-back.png';
+            }}
+          />
         </div>
       </div>
 
-      {showModal && (
-        <div
-          className="card-modal-backdrop"
-          onClick={() => setShowModal(false)}
-          aria-modal="true"
-          role="dialog"
-        >
-          <div
-            className="card-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="card-large" aria-live="polite">
-              <div className="card-name">{card.name}</div>
-              <div className="card-meta">
-                Cost {card.cost} • VP {card.vp}
+      {/* Enlarged hover card */}
+      {isHovered && (
+        <div className="card-hover-overlay">
+          <div className="card-enlarged">
+            <div className="card-enlarged-image">
+              <img src={imagePath} alt={card.name} />
+            </div>
+            <div className="card-enlarged-details">
+              <h3 className="card-enlarged-name">{card.name}</h3>
+              <div className="card-enlarged-stats">
+                <div className="stat-item">
+                  <span className="stat-label">Cost:</span>
+                  <span className="stat-value">{card.cost}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">VP:</span>
+                  <span className="stat-value">{card.vp}</span>
+                </div>
+                {card.power !== undefined && (
+                  <div className="stat-item">
+                    <span className="stat-label">Power:</span>
+                    <span className="stat-value">+{card.power}</span>
+                  </div>
+                )}
+              </div>
+              {card.text && (
+                <div className="card-enlarged-text">
+                  <p>{card.text}</p>
+                </div>
+              )}
+              <div className="card-enlarged-type">
+                <span className={`type-badge type-${card.type}`}>
+                  {card.type.toUpperCase()}
+                </span>
               </div>
             </div>
-            <button className="close-btn" onClick={() => setShowModal(false)} aria-label="Close card">
-              ✕ Close
-            </button>
           </div>
         </div>
       )}

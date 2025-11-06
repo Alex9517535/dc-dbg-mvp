@@ -1,254 +1,207 @@
+// src/state/store.ts
 import { create } from 'zustand';
-import type { GameState, Card, LogEntry } from '../core/types';
-import { newGame, endTurn, buyFromLineup, nextTurn } from '../core/engine';
+import type { GameState, Card } from '../core/types';
+import { createStarterDeck, createMainDeck, shuffleDeck } from '../core/cards';
 
-// bump this whenever the saved shape / deck data changes
-const KEY = 'dc-dbg-mvp-save-v5';
-
-// ---- validation to ignore stale/corrupt saves ----
-const okCard = (c: any): c is Card =>
-  c &&
-  typeof c.id === 'string' &&
-  typeof c.name === 'string' &&
-  typeof c.cost === 'number' &&
-  typeof c.vp === 'number';
-
-const loadStateValidated = (): GameState | null => {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as GameState;
-    const p = parsed?.piles;
-
-    const looksValid =
-      p &&
-      Array.isArray(p.deck) &&
-      Array.isArray(p.hand) &&
-      Array.isArray(p.discard) &&
-      Array.isArray(p.lineup) &&
-      [p.deck[0], p.lineup[0], p.hand[0]].filter(Boolean).every(okCard);
-
-    return looksValid ? parsed : null;
-  } catch {
-    return null;
-  }
-};
-
-type Actions = {
-  reset: () => void;
+interface GameStore extends GameState {
+  // Actions
+  startGame: () => void;
+  drawCards: (count: number) => void;
+  playCard: (cardId: string) => void;
+  buyCard: (cardId: string) => void;
   endTurn: () => void;
-  buy: (cardId: string) => void;
-  nextTurn: () => void;
-  save: () => void;
-  load: () => void;
+  continueFromOpponent: () => void;
+  saveGame: () => void;
+  loadGame: () => void;
+  returnToMenu: () => void;
+  newGame: () => void;
+}
 
-  // UI slice
-  setUiShowMenu: (show: boolean) => void;
-  startNewFromMenu: () => void;
-
-  // diagnostics / UI
-  addLog: (entry: Omit<LogEntry, 'id' | 'ts' | 'turn' | 'phase'>) => void;
-  clearLog: () => void;
-  setShowLogPanel: (show: boolean) => void;
-  setHoveredCard: (card: Card | null) => void;
+const initialState: GameState = {
+  phase: 'menu',
+  turn: 1,
+  power: 0,
+  score: 0,
+  deck: [],
+  hand: [],
+  discard: [],
+  inPlay: [],
+  lineup: [],
+  mainDeck: [],
+  supervillain: null,
+  isOpponentTurn: false,
+  canDrawCards: true,
 };
 
-type Store = GameState & {
-  uiShowMenu: boolean;
+export const useGameStore = create<GameStore>((set, get) => ({
+  ...initialState,
 
-  // UI + diagnostics
-  actionLog: LogEntry[];
-  showLogPanel: boolean;
-  hoveredCard: Card | null;
-} & Actions;
-
-// ---- store ----
-export const useGame = create<Store>((set, get) => {
-  const initial = loadStateValidated() ?? newGame();
-
-  const mkLog = (partial: Omit<LogEntry, 'id' | 'ts' | 'turn' | 'phase'>): LogEntry => {
-    const s = get();
-    return {
-      id:
-        (globalThis.crypto?.randomUUID?.() ??
-          `log_${Date.now()}_${Math.random().toString(36).slice(2)}`),
-      ts: Date.now(),
-      turn: s.turn,
-      phase: s.phase,
-      ...partial,
-    };
-  };
-
-  return {
-    ...initial,
-    uiShowMenu: true,
-
-    // defaults
-    actionLog: [],
-    showLogPanel: false,
-    hoveredCard: null,
-
-    // prefer immutable updates so React/Zustand re-render immediately
-    addLog: (partial) =>
-      set((s) => ({
-        ...s,
-        actionLog: [...s.actionLog, mkLog(partial)],
-      })),
-
-    clearLog: () =>
-      set((s) => ({
-        ...s,
-        actionLog: [],
-      })),
-
-    setShowLogPanel: (show) =>
-      set((s) => ({
-        ...s,
-        showLogPanel: show,
-      })),
-
-    setHoveredCard: (card) =>
-      set((s) => ({
-        ...s,
-        hoveredCard: card,
-      })),
-
-    reset: () =>
-      set((s) => {
-        const next = newGame();
-        const entry: LogEntry = {
-          id:
-            (globalThis.crypto?.randomUUID?.() ??
-              `log_${Date.now()}_${Math.random().toString(36).slice(2)}`),
-          ts: Date.now(),
-          turn: next.turn,
-          phase: next.phase,
-          kind: 'game/start',
-          msg: 'New game started',
-        };
-        return {
-          ...next,
-          actionLog: [...s.actionLog, entry],
-          showLogPanel: s.showLogPanel,
-          hoveredCard: null,
-        };
-      }),
-
-    // endTurn
-endTurn: () =>
-  set((s) => {
-    const entry = mkLog({ kind: 'turn/end', msg: 'End Turn clicked' });
-    const next = endTurn(s); // now pure
-    return {
-      ...next,
-      actionLog: [...s.actionLog, entry],
-    };
-  }),
-
-// buy
-buy: (cardId: string) =>
-  set((s) => {
-    const card = s.piles.lineup.find((c) => c.id === cardId);
-    if (!card) return { ...s };
-
-    const attempt = mkLog({
-      kind: 'buy/attempt',
-      msg: `Attempt to buy ${card.name} (cost ${card.cost})`,
-      data: { cardId },
+  startGame: () => {
+    const deck = shuffleDeck(createStarterDeck());
+    const mainDeck = shuffleDeck(createMainDeck());
+    const lineup = mainDeck.splice(0, 5);
+    
+    set({
+      phase: 'turn',
+      turn: 1,
+      power: 0,
+      score: 0,
+      deck,
+      hand: [],
+      discard: [],
+      inPlay: [],
+      lineup,
+      mainDeck,
+      supervillain: null,
+      isOpponentTurn: false,
+      canDrawCards: true,
     });
+    
+    // Auto-draw starting hand
+    get().drawCards(5);
+  },
 
-    const next = buyFromLineup(s, cardId); // now pure
-    const purchased =
-      next !== s && next.phase === 'refill' && next.score !== s.score;
-
-    const entries = purchased
-      ? [
-          attempt,
-          mkLog({
-            kind: 'buy/success',
-            msg: `Purchased ${card.name}; power now ${next.power}`,
-            data: { cardId, newPower: next.power, score: next.score },
-          }),
-        ]
-      : [attempt];
-
-    return {
-      ...next,
-      actionLog: [...s.actionLog, ...entries],
-    };
-  }),
-
-// nextTurn
-nextTurn: () =>
-  set((s) => {
-    const entry = mkLog({ kind: 'turn/next', msg: 'Proceed to next turn' });
-    const next = nextTurn(s); // now pure
-    return {
-      ...next,
-      actionLog: [...s.actionLog, entry],
-    };
-  }),
-
-
-    save: () => {
-      const {
-        uiShowMenu,
-        setUiShowMenu,
-        startNewFromMenu,
-        addLog,
-        clearLog,
-        setShowLogPanel,
-        setHoveredCard, // eslint-disable-line @typescript-eslint/no-unused-vars
-        ...gameOnly
-      } = get();
-      localStorage.setItem(KEY, JSON.stringify(gameOnly));
-      set((s) => ({
-        ...s,
-        actionLog: [...s.actionLog, mkLog({ kind: 'save', msg: 'Game saved to localStorage' })],
-      }));
-    },
-
-    load: () => {
-      const loaded = loadStateValidated();
-      if (loaded) {
-        set((s) => ({
-          ...loaded,
-          actionLog: [...s.actionLog, mkLog({ kind: 'load', msg: 'Game loaded from localStorage' })],
-          showLogPanel: s.showLogPanel,
-          hoveredCard: null,
-        }));
+  drawCards: (count: number) => {
+    const state = get();
+    let { deck, hand, discard } = state;
+    
+    for (let i = 0; i < count; i++) {
+      if (deck.length === 0 && discard.length > 0) {
+        // Shuffle discard into deck
+        deck = shuffleDeck([...discard]);
+        discard = [];
       }
-    },
+      
+      if (deck.length > 0) {
+        const card = deck.pop()!;
+        hand.push(card);
+      }
+    }
+    
+    set({ deck: [...deck], hand: [...hand], discard: [...discard], canDrawCards: false });
+  },
 
-    setUiShowMenu: (show: boolean) =>
-      set((s) => ({
-        ...s,
-        uiShowMenu: show,
-        actionLog: [
-          ...s.actionLog,
-          mkLog({ kind: show ? 'menu/show' : 'menu/hide', msg: `Menu ${show ? 'shown' : 'hidden'}` }),
-        ],
-      })),
+  playCard: (cardId: string) => {
+    const state = get();
+    const cardIndex = state.hand.findIndex(c => c.id === cardId);
+    
+    if (cardIndex === -1) return;
+    
+    const card = state.hand[cardIndex];
+    const newHand = state.hand.filter((_, i) => i !== cardIndex);
+    const newInPlay = [...state.inPlay, card];
+    const newPower = state.power + (card.power || 0);
+    
+    set({
+      hand: newHand,
+      inPlay: newInPlay,
+      power: newPower,
+    });
+  },
 
-    startNewFromMenu: () =>
-      set(() => {
-        const fresh = newGame();
-        return { ...fresh, uiShowMenu: false };
-      }),
-  };
-});
+  buyCard: (cardId: string) => {
+    const state = get();
+    const cardIndex = state.lineup.findIndex(c => c.id === cardId);
+    
+    if (cardIndex === -1) return;
+    
+    const card = state.lineup[cardIndex];
+    
+    if (state.power < card.cost) return;
+    
+    // Buy the card
+    const newPower = state.power - card.cost;
+    const newScore = state.score + card.vp;
+    const newDiscard = [...state.discard, card];
+    
+    // Refill lineup
+    let newLineup = [...state.lineup];
+    let newMainDeck = [...state.mainDeck];
+    
+    if (newMainDeck.length > 0) {
+      const newCard = newMainDeck.pop()!;
+      newLineup[cardIndex] = newCard;
+    } else {
+      newLineup.splice(cardIndex, 1);
+    }
+    
+    set({
+      power: newPower,
+      score: newScore,
+      discard: newDiscard,
+      lineup: newLineup,
+      mainDeck: newMainDeck,
+    });
+  },
 
-// autosave on unload (game state only)
-window.addEventListener('beforeunload', () => {
-  const {
-    uiShowMenu,
-    setUiShowMenu,
-    startNewFromMenu,
-    addLog,
-    clearLog,
-    setShowLogPanel,
-    setHoveredCard,
-    ...gameOnly
-  } = useGame.getState() as any;
-  localStorage.setItem(KEY, JSON.stringify(gameOnly));
-});
+  endTurn: () => {
+    const state = get();
+    
+    // Move all cards from hand and in-play to discard
+    const newDiscard = [...state.discard, ...state.hand, ...state.inPlay];
+    
+    set({
+      hand: [],
+      inPlay: [],
+      discard: newDiscard,
+      power: 0,
+      phase: 'opponent',
+      isOpponentTurn: true,
+    });
+  },
+
+  continueFromOpponent: () => {
+    const state = get();
+    
+    set({
+      phase: 'turn',
+      turn: state.turn + 1,
+      isOpponentTurn: false,
+      canDrawCards: true,
+    });
+    
+    // Auto-draw 5 cards for next turn
+    get().drawCards(5);
+  },
+
+  saveGame: () => {
+    const state = get();
+    const saveData = {
+      phase: state.phase,
+      turn: state.turn,
+      power: state.power,
+      score: state.score,
+      deck: state.deck,
+      hand: state.hand,
+      discard: state.discard,
+      inPlay: state.inPlay,
+      lineup: state.lineup,
+      mainDeck: state.mainDeck,
+      supervillain: state.supervillain,
+      isOpponentTurn: state.isOpponentTurn,
+      canDrawCards: state.canDrawCards,
+    };
+    localStorage.setItem('dc-dbg-save', JSON.stringify(saveData));
+    alert('Game saved!');
+  },
+
+  loadGame: () => {
+    const saveData = localStorage.getItem('dc-dbg-save');
+    if (saveData) {
+      const parsed = JSON.parse(saveData);
+      set(parsed);
+      alert('Game loaded!');
+    } else {
+      alert('No saved game found!');
+    }
+  },
+
+  returnToMenu: () => {
+    set({ phase: 'menu' });
+  },
+
+  newGame: () => {
+    set(initialState);
+    get().startGame();
+  },
+}));

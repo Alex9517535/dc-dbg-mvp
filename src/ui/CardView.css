@@ -1,0 +1,232 @@
+/* src/ui/CardView.css */
+
+.card {
+  width: 140px;
+  min-height: 190px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.card-image-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.card-clickable:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 8px 16px rgba(96, 165, 250, 0.5);
+  z-index: 10;
+}
+
+.card-played {
+  border: 3px solid #4ade80;
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+  animation: playPulse 0.5s ease-out;
+}
+
+@keyframes playPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(74, 222, 128, 0.6);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(74, 222, 128, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+  }
+}
+
+/* Hover Overlay */
+.card-hover-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.card-enlarged {
+  width: 400px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 3px solid #60a5fa;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  animation: scaleIn 0.2s ease;
+  pointer-events: none;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.card-enlarged-image {
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-enlarged-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-enlarged-details {
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.card-enlarged-name {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #60a5fa;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.card-enlarged-stats {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 8px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4ade80;
+}
+
+.card-enlarged-text {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.4);
+  border-radius: 6px;
+  border-left: 3px solid #60a5fa;
+}
+
+.card-enlarged-text p {
+  color: #cbd5e1;
+  line-height: 1.6;
+  font-style: italic;
+  margin: 0;
+}
+
+.card-enlarged-type {
+  display: flex;
+  justify-content: center;
+}
+
+.type-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.type-starter {
+  background: rgba(148, 163, 184, 0.3);
+  color: #cbd5e1;
+  border: 1px solid #94a3b8;
+}
+
+.type-equipment {
+  background: rgba(139, 92, 246, 0.3);
+  color: #c4b5fd;
+  border: 1px solid #8b5cf6;
+}
+
+.type-superpower {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  border: 1px solid #ef4444;
+}
+
+.type-hero {
+  background: rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+  border: 1px solid #3b82f6;
+}
+
+.type-villain {
+  background: rgba(168, 85, 247, 0.3);
+  color: #d8b4fe;
+  border: 1px solid #a855f7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card-enlarged {
+    width: 90vw;
+    max-width: 350px;
+  }
+
+  .card-enlarged-image {
+    height: 400px;
+  }
+
+  .card-enlarged-name {
+    font-size: 1.5rem;
+  }
+}

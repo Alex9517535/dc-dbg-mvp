@@ -1,89 +1,199 @@
-import './styles.css';
-import { useGame } from './state/store';
-import Pile from './ui/Pile';
-import Controls from './ui/Controls';
-import { isGameOver } from './core/engine';
+// src/App.tsx
+import { useEffect } from 'react';
+import { useGameStore } from './state/store';
 import MenuScreen from './ui/MenuScreen';
+import CardView from './ui/CardView';
+import './styles.css';
 
-import PhaseIndicator from './ui/PhaseIndicator';            
-import RulesReferencePanel from './ui/RulesReferencePanel';  
-import ActionLogPanel from './ui/ActionLogPanel';            
-import CardTooltip from './ui/CardTooltip';              
+function App() {
+  const {
+    phase,
+    turn,
+    power,
+    score,
+    deck,
+    hand,
+    discard,
+    inPlay,
+    lineup,
+    mainDeck,
+    supervillain,
+    isOpponentTurn,
+    startGame,
+    playCard,
+    buyCard,
+    endTurn,
+    continueFromOpponent,
+    saveGame,
+    loadGame,
+    returnToMenu,
+    newGame,
+  } = useGameStore();
 
-export default function App() {
-  const g = useGame();
-  const showMenu = g.uiShowMenu;
+  // Handle spacebar for continuing from opponent turn
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === ' ' && isOpponentTurn) {
+        e.preventDefault();
+        continueFromOpponent();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isOpponentTurn, continueFromOpponent]);
 
-  if (showMenu) {
+  if (phase === 'menu') {
+    return <MenuScreen onStart={startGame} />;
+  }
+
+  if (isOpponentTurn) {
     return (
-      <MenuScreen
-        onStart={() => {
-          useGame.getState().reset();
-          useGame.getState().setUiShowMenu(false);
-        }}
-      />
+      <div className="opponent-turn-screen">
+        <div className="opponent-banner">
+          <h1>OPPONENT'S TURN</h1>
+          <p className="development-note">IN DEVELOPMENT</p>
+          <p className="continue-prompt">Press <kbd>SPACEBAR</kbd> to continue</p>
+        </div>
+      </div>
     );
   }
 
-  const gameOver = isGameOver(g);
-
   return (
-    <div className="game-board">
-      <main className="container">
-        <header
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 12,
-          }}
-        >
+    <div className="game-container">
+      <header className="game-header">
+        <div className="header-left">
           <h1>DC Deck-Building MVP (Placeholder Assets)</h1>
-          <PhaseIndicator phase={g.phase} />
-        </header>
+          <div className="game-info">
+            <span>Turn {turn}</span>
+            <span>Phase: <strong style={{ color: '#4ade80' }}>TURN</strong></span>
+            <span>Power: {power}</span>
+            <span>Score: {score}</span>
+          </div>
+        </div>
+        
+        <div className="header-right">
+          <div className="pile-counters">
+            <div className="counter-item">
+              <span className="counter-label">Deck:</span>
+              <span className="counter-value">{deck.length}</span>
+            </div>
+            <div className="counter-item">
+              <span className="counter-label">Hand:</span>
+              <span className="counter-value">{hand.length}</span>
+            </div>
+            <div className="counter-item">
+              <span className="counter-label">Discard:</span>
+              <span className="counter-value">{discard.length}</span>
+            </div>
+          </div>
+          <div className="game-controls">
+            <button onClick={endTurn}>End Turn</button>
+            <button onClick={saveGame}>Save</button>
+            <button onClick={loadGame}>Load</button>
+            <button onClick={newGame}>New Game</button>
+            <button onClick={returnToMenu}>Return to Main Menu</button>
+          </div>
+        </div>
+      </header>
 
-        {gameOver && (
-          <div className="banner">Game Over • Final Score: {g.score}</div>
-        )}
+      <main className="game-board">
+        {/* Top Row: Supervillain, Main Deck, Discard */}
+        <section className="top-piles-row">
+          <div className="pile-spot">
+            <h3>Supervillain</h3>
+            <div className="card-spot supervillain-spot">
+              {supervillain ? (
+                <CardView card={supervillain} />
+              ) : (
+                <div className="card-back-container">
+                  <img src="/cards/card-back.png" alt="Card Back" className="card-back-image" />
+                  <div className="card-back-overlay">
+                    <span className="card-back-text">No Supervillain</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
-        <Controls
-          turn={g.turn}
-          phase={g.phase}
-          power={g.power}
-          score={g.score}
-          onEndTurn={() => useGame.getState().endTurn()}
-          onNextTurn={() => useGame.getState().nextTurn()}
-          onReset={() => useGame.getState().reset()}
-          onSave={() => useGame.getState().save()}
-          onLoad={() => useGame.getState().load()}
-          onReturnToMenu={() => useGame.getState().setUiShowMenu(true)}
-        />
+          <div className="pile-spot">
+            <h3>Main Deck</h3>
+            <div className="card-spot main-deck-spot">
+              <div className="card-back-container">
+                <img src="/cards/card-back.png" alt="Card Back" className="card-back-image" />
+                <div className="card-back-overlay">
+                  <div className="deck-count-large">{mainDeck.length}</div>
+                  <div className="deck-label">Cards</div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <RulesReferencePanel />
-
-        <Pile
-          title="Line-Up"
-          cards={g.piles.lineup}
-          onCardClick={(id) => useGame.getState().buy(id)}
-          disableAll={g.phase !== "buy"}
-        />
-
-        <section className="row-summaries">
-          <div className="summary">Deck: {g.piles.deck.length}</div>
-          <div className="summary">Discard: {g.piles.discard.length}</div>
+          <div className="pile-spot">
+            <h3>Discard Pile</h3>
+            <div className="card-spot discard-spot">
+              {discard.length > 0 ? (
+                <div className="discard-pile-display">
+                  <CardView card={discard[discard.length - 1]} />
+                  <div className="discard-count">{discard.length}</div>
+                </div>
+              ) : (
+                <div className="empty-spot">
+                  <span>Empty</span>
+                </div>
+              )}
+            </div>
+          </div>
         </section>
 
-        <Pile title="Hand" cards={g.piles.hand} disableAll />
-
-        <details className="menu-details" style={{ marginTop: 12 }}>
-          <summary>Show Action Log</summary>
-          <div className="menu-panel">
-            <ActionLogPanel />
+        {/* Line-up */}
+        <section className="lineup-area">
+          <h3>Line-Up ({lineup.length})</h3>
+          <div className="card-row">
+            {lineup.map((card, i) => (
+              <CardView
+                key={`${card.id}-${i}`}
+                card={card}
+                onClick={() => buyCard(card.id)}
+              />
+            ))}
           </div>
-        </details>
+        </section>
 
-        <CardTooltip card={g.hoveredCard} />
+        {/* In-Play Area */}
+        <section className="inplay-area">
+          <h3>In Play</h3>
+          <div className="card-row">
+            {inPlay.length === 0 ? (
+              <div className="empty-area">Play cards here to generate power</div>
+            ) : (
+              inPlay.map((card, i) => (
+                <CardView
+                  key={`${card.id}-${i}`}
+                  card={card}
+                  isPlayed={true}
+                />
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* Hand */}
+        <section className="hand-area">
+          <h3>Hand ({hand.length})</h3>
+          <div className="card-row">
+            {hand.map((card, i) => (
+              <CardView
+                key={`${card.id}-${i}`}
+                card={card}
+                onClick={() => playCard(card.id)}
+              />
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );
 }
+
+export default App;

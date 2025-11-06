@@ -1,59 +1,37 @@
-// A card definition ("recipe" for cards in the supply)
-export type CardDef = {
+// src/core/types.ts
+
+export type CardType = 'starter' | 'hero' | 'villain' | 'equipment' | 'superpower';
+
+export interface Card {
+  id: string;
   name: string;
   cost: number;
   vp: number;
-  count?: number;     // how many copies in the supply (default 1)
-  set?: string;       // optional: "base", etc.
-  type?: string;      // optional: "basic" | "ally" | "equip" | ...
-  text?: string;      // optional: rules text (placeholder only)
-};
+  power?: number;
+  type: CardType;
+  text?: string;
+}
 
-// A concrete card instance with a unique id (what goes into piles)
-export type CardId = string;
-export type Card = CardDef & { id: CardId };
+export type Phase = 'menu' | 'setup' | 'turn' | 'opponent' | 'end';
 
-export type Piles = {
+export interface GameState {
+  phase: Phase;
+  turn: number;
+  power: number;
+  score: number;
+  
+  // Player areas
   deck: Card[];
   hand: Card[];
   discard: Card[];
+  inPlay: Card[];
+  
+  // Shared areas
   lineup: Card[];
-  destroyed: Card[];
-};
-
-export type Phase = 'setup' | 'turn' | 'buy' | 'refill' | 'end';
-
-export type GameState = {
-  turn: number;
-  phase: Phase;
-  piles: Piles;
-  power: number;
-  score: number;
-};
-
-// --- Action / Turn History Log ---
-
-export type LogKind =
-  | 'game/start'
-  | 'turn/end'
-  | 'turn/next'
-  | 'buy/attempt'
-  | 'buy/success'
-  | 'shuffle'
-  | 'refill'
-  | 'save'
-  | 'load'
-  | 'menu/show'
-  | 'menu/hide'
-  | 'card/view';
-
-export type LogEntry = {
-  id: string;
-  ts: number;      // Date.now()
-  turn: number;
-  phase: Phase;
-  kind: LogKind;
-  msg: string;     // human-readable
-  data?: Record<string, unknown>;
-};
-
+  mainDeck: Card[];
+  supervillain: Card | null;
+  
+  // Game flow
+  isOpponentTurn: boolean;
+  canDrawCards: boolean;
+}
