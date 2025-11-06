@@ -1,7 +1,7 @@
 // src/core/engine.ts
-import type { GameState, Card } from './types';
-import { getBaseDeck } from '../data/cards';
-import { shuffle } from './cards';
+import type { GameState, Card } from './types.ts';
+import { getBaseDeck } from '../data/cards.ts';
+import { shuffle } from './cards.ts';
 
 const HAND_SIZE = 5;
 const LINEUP_SIZE = 5;

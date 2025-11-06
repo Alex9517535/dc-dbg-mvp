@@ -1,4 +1,4 @@
-import type { Card } from './types';
+import type { Card } from './types.ts';
 
 export function makeBaseSet(): Card[] {
   // keep it trivial: costs 1–5, vp equals cost for demo
